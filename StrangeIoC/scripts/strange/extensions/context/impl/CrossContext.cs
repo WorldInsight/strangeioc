@@ -1,5 +1,7 @@
-/*
+﻿/*
  * Copyright 2013 ThirdMotion, Inc.
+ *
+ * Modified  2014 DB Systel GmbH
  *
  *	Licensed under the Apache License, Version 2.0 (the "License");
  *	you may not use this file except in compliance with the License.
@@ -114,6 +116,7 @@ namespace strange.extensions.context.impl
 				injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CROSS_CONTEXT_DISPATCHER).CrossContext();
 				injectionBinder.Bind<CrossContextBridge> ().ToSingleton ().CrossContext();
 
+				injectionBinder.GetBinding<ITypeRegistry>().CrossContext();
 				injectionBinder.GetBinding<IImplicitBinder>().CrossContext();
 			}
 

@@ -24,6 +24,7 @@ using strange.extensions.injector.impl;
 
 namespace strange.extensions.implicitBind.impl
 {
+	[ConcreteBinder(41)]
 	public class ConcreteImplementsBinder : AbstractConcreteBinder<Implements>
 	{
 		public override void ExecuteBindings(List<Type> typesInNamespaces)

@@ -19,11 +19,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using strange.extensions.injector.api;
 using strange.extensions.mediation.api;
 using strange.extensions.mediation.impl;
 
 namespace strange.extensions.implicitBind.impl
 {
+	[ConcreteBinder(20, Scope = InjectionBindingScope.CROSS_CONTEXT)]
 	public class ConcreteMediatedByBinder : AbstractConcreteBinder<MediatedBy>
 	{
 		[Inject]

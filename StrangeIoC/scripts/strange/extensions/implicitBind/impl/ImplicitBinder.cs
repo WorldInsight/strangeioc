@@ -57,8 +57,37 @@ namespace strange.extensions.implicitBind.impl
 					typesInNamespaces.AddRange(types.Where(t => !string.IsNullOrEmpty(t.Namespace) && t.Namespace.StartsWith(usingNamespaces[ns])));
 				}
 
+				List<InjectionBindingScope> validScopes = new List<InjectionBindingScope>()
+				{
+					InjectionBindingScope.SINGLE_CONTEXT
+				};
+				if (injectionBinder is ICrossContextInjectionBinder)
+				{
+					validScopes.Add(InjectionBindingScope.CROSS_CONTEXT);
+				}
+
 				IEnumerable<Type> concreteBinderClasses = types.Where(
-					t => t.BaseType != null && t.BaseType.Name.Equals(typeof(AbstractConcreteBinder<>).Name) //&& t != typeof(AbstractConcreteBinder<>)
+					t =>
+						t.BaseType != null
+						&&
+						t.BaseType.Name.Equals(typeof(AbstractConcreteBinder<>).Name)
+						&& 
+						((t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false).Length > 0) ?
+							(
+								t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false)[0] as ConcreteBinderAttribute).Scope == null ||
+								validScopes.Contains((t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false)[0] as ConcreteBinderAttribute).Scope
+							)
+							:
+							false
+						)
+				);
+
+				// sort by Priority Attribute
+				concreteBinderClasses = concreteBinderClasses.OrderBy(
+					b => (b.GetCustomAttributes(typeof(ConcreteBinderAttribute), false).Length > 0) ?
+						(b.GetCustomAttributes(typeof(ConcreteBinderAttribute), false)[0] as ConcreteBinderAttribute).Priority
+						:
+						int.MaxValue
 				);
 
 				foreach(Type binder in concreteBinderClasses)
