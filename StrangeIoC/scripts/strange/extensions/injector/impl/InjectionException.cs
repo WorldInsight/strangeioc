@@ -38,6 +38,13 @@ namespace strange.extensions.injector.impl
 		{
 			type = exceptionType;
 		}
+
+		/// Constructs an InjectionException with a message and InjectionExceptionType and a cause
+		public InjectionException(string message, InjectionExceptionType exceptionType, Exception cause)
+			: base(message, cause)
+		{
+			type = exceptionType;
+		}
 	}
 }
 
