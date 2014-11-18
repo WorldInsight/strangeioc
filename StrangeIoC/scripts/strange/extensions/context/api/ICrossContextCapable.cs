@@ -48,7 +48,7 @@ namespace strange.extensions.context.api
 		object GetComponent<T>(object name);
 
 		/// All cross-context capable contexts must implement an injectionBinder
-		ICrossContextInjectionBinder injectionBinder { get; set; }
+		ICrossContextInjectionBinder crossContextInjectionBinder { get; set; }
 
 		/// Set and get the shared system bus for communicating across contexts
 		IDispatcher crossContextDispatcher { get; set; }

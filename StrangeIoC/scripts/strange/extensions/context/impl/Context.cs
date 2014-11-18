@@ -27,6 +27,11 @@
  */
 
 using strange.extensions.context.api;
+using strange.extensions.implicitBind.api;
+using strange.extensions.implicitBind.impl;
+using strange.extensions.injector.api;
+using strange.extensions.injector.impl;
+using strange.framework.api;
 using strange.framework.impl;
 
 namespace strange.extensions.context.impl
@@ -42,6 +47,23 @@ namespace strange.extensions.context.impl
 
 		/// If false, the `Launch()` method won't fire.
 		public bool autoStartup;
+		
+		private IInjectionBinder _injectionBinder;
+
+		public virtual IInjectionBinder injectionBinder
+		{
+			get { return _injectionBinder ?? (_injectionBinder = new InjectionBinder()); }
+			set { _injectionBinder = value; }
+		}
+
+		//Interprets implicit bindings
+		public IImplicitBinder implicitBinder
+		{
+			get
+			{
+				return injectionBinder.GetInstance<IImplicitBinder>() as IImplicitBinder;
+			}
+		}
 		
 		public Context ()
 		{
@@ -76,6 +98,9 @@ namespace strange.extensions.context.impl
 		/// Override to add componentry. Or just extend MVCSContext.
 		virtual protected void addCoreComponents()
 		{
+			injectionBinder.Bind<IInstanceProvider>().Bind<IInjectionBinder>().ToValue(injectionBinder);
+
+			injectionBinder.Bind<IImplicitBinder>().To<ImplicitBinder>().ToSingleton();
 		}
 		
 		/// Override to instantiate componentry. Or just extend MVCSContext.

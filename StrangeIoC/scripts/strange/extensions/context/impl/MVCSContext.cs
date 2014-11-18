@@ -185,9 +185,6 @@ namespace strange.extensions.context.impl
 		/// A Binder that maps Views to Mediators
 		public IMediationBinder mediationBinder{get;set;}
 
-		//Interprets implicit bindings
-		public IImplicitBinder implicitBinder { get; set; }
-
 		/// A Binder that maps Events to Sequences
 		public ISequencer sequencer{get;set;}
 
@@ -229,7 +226,7 @@ namespace strange.extensions.context.impl
 		protected override void addCoreComponents()
 		{
 			base.addCoreComponents();
-			injectionBinder.Bind<IInstanceProvider>().Bind<IInjectionBinder>().ToValue(injectionBinder);
+
 			injectionBinder.Bind<IContext>().ToValue(this).ToName(ContextKeys.CONTEXT);
 			injectionBinder.Bind<ICommandBinder>().To<EventCommandBinder>().ToSingleton();
 			//This binding is for local dispatchers
@@ -238,7 +235,6 @@ namespace strange.extensions.context.impl
 			injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CONTEXT_DISPATCHER);
 			injectionBinder.Bind<IMediationBinder>().To<MediationBinder>().ToSingleton();
 			injectionBinder.Bind<ISequencer>().To<EventSequencer>().ToSingleton();
-			injectionBinder.Bind<IImplicitBinder>().To<ImplicitBinder>().ToSingleton();
 		}
 		
 		protected override void instantiateCoreComponents()
@@ -254,7 +250,6 @@ namespace strange.extensions.context.impl
 			dispatcher = injectionBinder.GetInstance<IEventDispatcher>(ContextKeys.CONTEXT_DISPATCHER) as IEventDispatcher;
 			mediationBinder = injectionBinder.GetInstance<IMediationBinder>() as IMediationBinder;
 			sequencer = injectionBinder.GetInstance<ISequencer>() as ISequencer;
-			implicitBinder = injectionBinder.GetInstance<IImplicitBinder>() as IImplicitBinder;
 
 			(dispatcher as ITriggerProvider).AddTriggerable(commandBinder as ITriggerable);
 			(dispatcher as ITriggerProvider).AddTriggerable(sequencer as ITriggerable);

@@ -28,6 +28,7 @@ using strange.extensions.dispatcher.eventdispatcher.api;
 using strange.extensions.dispatcher.eventdispatcher.impl;
 using strange.extensions.context.api;
 using strange.extensions.dispatcher.api;
+using strange.extensions.implicitBind.api;
 using strange.extensions.injector.api;
 using strange.extensions.injector.impl;
 using strange.framework.api;
@@ -40,10 +41,33 @@ namespace strange.extensions.context.impl
 		private IBinder _crossContextBridge;
 
 		/// A Binder that handles dependency injection binding and instantiation
-		public ICrossContextInjectionBinder injectionBinder
+		public ICrossContextInjectionBinder crossContextInjectionBinder
 		{
-			get { return _injectionBinder ?? (_injectionBinder = new CrossContextInjectionBinder()); }
-		    set { _injectionBinder = value; }
+			get
+			{
+				if (_injectionBinder != null)
+				{
+					return _injectionBinder;
+				}
+				// create new cross context injection binder
+				_injectionBinder = new CrossContextInjectionBinder()
+				{
+					// reuse existing binding from base
+					CrossContextBinder = (base.injectionBinder != null) ? base.injectionBinder : new CrossContextInjectionBinder(),
+				};
+				return _injectionBinder; 
+			}
+			set
+			{
+				_injectionBinder = value;
+			}
+		}
+
+		public override IInjectionBinder injectionBinder
+		{
+			get {
+				return crossContextInjectionBinder;
+			}
 		}
 
 		/// A specific instance of EventDispatcher that communicates 
@@ -77,10 +101,6 @@ namespace strange.extensions.context.impl
 		protected override void addCoreComponents()
 		{
 			base.addCoreComponents();
-			if (injectionBinder.CrossContextBinder == null)  //Only null if it could not find a parent context / firstContext
-			{
-				injectionBinder.CrossContextBinder = new CrossContextInjectionBinder();
-			}
 
 			if (firstContext == this)
 			{
@@ -120,7 +140,7 @@ namespace strange.extensions.context.impl
 		virtual public void AssignCrossContext(ICrossContextCapable childContext)
 		{
 			childContext.crossContextDispatcher = crossContextDispatcher;
-			childContext.injectionBinder.CrossContextBinder = injectionBinder.CrossContextBinder;
+			childContext.crossContextInjectionBinder.CrossContextBinder = crossContextInjectionBinder.CrossContextBinder;
 		}
 
 		virtual public void RemoveCrossContext(ICrossContextCapable childContext)
