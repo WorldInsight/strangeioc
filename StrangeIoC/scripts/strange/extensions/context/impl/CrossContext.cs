@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2013 ThirdMotion, Inc.
  *
  *	Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,9 @@ namespace strange.extensions.context.impl
 	{
 		private ICrossContextInjectionBinder _injectionBinder;
 		private IBinder _crossContextBridge;
+
+		/// A Binder that serves as the Event bus for the Context
+		public IEventDispatcher dispatcher { get; set; }
 
 		/// A Binder that handles dependency injection binding and instantiation
 		public ICrossContextInjectionBinder crossContextInjectionBinder
@@ -104,6 +107,7 @@ namespace strange.extensions.context.impl
 
 			if (firstContext == this)
 			{
+				// TODO: Why do we bind a cross EventDispatcher here but soley the MVCS Contxt also binds a local and context EventDispatcher, shouldn't this be in base?
 				injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CROSS_CONTEXT_DISPATCHER).CrossContext();
 				injectionBinder.Bind<CrossContextBridge> ().ToSingleton ().CrossContext();
 			}
@@ -115,14 +119,16 @@ namespace strange.extensions.context.impl
 			base.instantiateCoreComponents();
 
 			IInjectionBinding dispatcherBinding = injectionBinder.GetBinding<IEventDispatcher> (ContextKeys.CONTEXT_DISPATCHER);
+			IInjectionBinding crossDispatcherBinding = injectionBinder.GetBinding<IEventDispatcher>(ContextKeys.CROSS_CONTEXT_DISPATCHER);
+			if (dispatcherBinding != null)
+			{
+				dispatcher = injectionBinder.GetInstance<IEventDispatcher>(ContextKeys.CONTEXT_DISPATCHER);
+				(dispatcher as ITriggerProvider).AddTriggerable(crossContextBridge as ITriggerable);
 
-			if (dispatcherBinding != null) {
-				IEventDispatcher dispatcher = injectionBinder.GetInstance<IEventDispatcher> (ContextKeys.CONTEXT_DISPATCHER) as IEventDispatcher;
-
-				if (dispatcher != null) {
+				if (crossDispatcherBinding != null)
+				{
 					crossContextDispatcher = injectionBinder.GetInstance<IEventDispatcher> (ContextKeys.CROSS_CONTEXT_DISPATCHER) as IEventDispatcher;
 					(crossContextDispatcher as ITriggerProvider).AddTriggerable (dispatcher as ITriggerable);
-					(dispatcher as ITriggerProvider).AddTriggerable (crossContextBridge as ITriggerable);
 				}
 			}
 		}
