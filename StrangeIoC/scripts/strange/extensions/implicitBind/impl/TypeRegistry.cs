@@ -15,7 +15,7 @@
  *		See the License for the specific language governing permissions and
  *		limitations under the License.
  */
- 
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -24,50 +24,51 @@ using strange.extensions.implicitBind.api;
 
 namespace strange.extensions.implicitBind.impl
 {
-	public class TypeRegistry : ITypeRegistry
-	{
+    public class TypeRegistry : ITypeRegistry
+    {
 
-		private List<Type> registeredTypes;
+        private HashSet<Type> registeredTypes;
 
 
-		public TypeRegistry()
-		{
-			registeredTypes = new List<Type>();
-			Assembly executingAssembly = Assembly.GetExecutingAssembly();
+        public TypeRegistry()
+        {
+            registeredTypes = new HashSet<Type>();
+            Assembly executingAssembly = Assembly.GetExecutingAssembly();
 
-			if(executingAssembly != null)
-			{
-				Type[] executingTypes = executingAssembly.GetExportedTypes();
-				registeredTypes.AddRange(executingTypes);
-			}
-		}
+            if (executingAssembly != null)
+            {
+                Type[] executingTypes = executingAssembly.GetExportedTypes();
+                registeredTypes.UnionWith(executingTypes);
 
-		/// <summary>
-		/// Register a new type with this registry
-		/// </summary>
-		/// <param name="newType"> Type to register</param>
-		public void RegisterType(Type newType)
-		{
-			registeredTypes.Add(newType);
-		}
+            }
+        }
 
-		/// <summary>
-		/// Register several new types with this registry
-		/// </summary>
-		/// <param name="newTypes">Collection of types to register</param>
-		public void RegisterTypes(IEnumerable<Type> newTypes)
-		{
-			registeredTypes.AddRange(newTypes);
-		}
+        /// <summary>
+        /// Register a new type with this registry
+        /// </summary>
+        /// <param name="newType"> Type to register</param>
+        public void RegisterType(Type newType)
+        {
+            registeredTypes.Add(newType);
+        }
 
-		/// <summary>
-		/// Return a collection of registered types
-		/// </summary>
-		/// <returns>Collection of registered types</returns>
-		public IEnumerable<Type> GetRegisteredTypes()
-		{
-			return registeredTypes;
-		}
-		
-	}
+        /// <summary>
+        /// Register several new types with this registry
+        /// </summary>
+        /// <param name="newTypes">Collection of types to register</param>
+        public void RegisterTypes(IEnumerable<Type> newTypes)
+        {
+            registeredTypes.UnionWith(newTypes);
+        }
+
+        /// <summary>
+        /// Return a collection of registered types
+        /// </summary>
+        /// <returns>Collection of registered types</returns>
+        public IEnumerable<Type> GetRegisteredTypes()
+        {
+            return registeredTypes;
+        }
+
+    }
 }

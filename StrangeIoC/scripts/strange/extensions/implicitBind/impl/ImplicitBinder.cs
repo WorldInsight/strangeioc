@@ -36,9 +36,6 @@ namespace strange.extensions.implicitBind.impl
 		[Inject]
 		public ITypeRegistry typeRegistry { get; set; }
 		
-		//Hold a copy of the assembly so we aren't retrieving this multiple times. 
-		private Assembly assembly;
-	
 		/// <summary>
 		/// Search through indicated namespaces and scan for all annotated classes.
 		/// Automatically create bindings
@@ -74,8 +71,7 @@ namespace strange.extensions.implicitBind.impl
 						&& 
 						((t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false).Length > 0) ?
 							(
-								t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false)[0] as ConcreteBinderAttribute).Scope == null ||
-								validScopes.Contains((t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false)[0] as ConcreteBinderAttribute).Scope
+								validScopes.Contains((t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false)[0] as ConcreteBinderAttribute).Scope)
 							)
 							:
 							false
