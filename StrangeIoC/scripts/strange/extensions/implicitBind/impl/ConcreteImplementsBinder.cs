@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using strange.extensions.injector.api;
 using strange.extensions.injector.impl;
+using strange.framework.api;
 
 namespace strange.extensions.implicitBind.impl
 {
@@ -37,17 +38,16 @@ namespace strange.extensions.implicitBind.impl
 			{
 				Type[] interfaces = type.GetInterfaces();
 
-				object name = null;
-				bool isCrossContext = false;
-				List<Type> bindTypes = new List<Type>();
-
 				foreach (Implements impl in type.GetCustomAttributes(typeof(Implements), true))
 				{
+					object name = impl.Name ?? BindingConst.NULLOID;
+					List<Type> bindTypes = new List<Type>();
+
 					//Confirm this type implements the type specified
 					if (impl.DefaultInterface != null)
 					{
 						//Verify this Type implements the passed interface
-						if (interfaces.Contains(impl.DefaultInterface) || type == impl.DefaultInterface)
+						if (interfaces.Contains(impl.DefaultInterface) || type == impl.DefaultInterface || type.BaseType == impl.DefaultInterface)
 						{
 							bindTypes.Add(impl.DefaultInterface);
 						}
@@ -61,12 +61,10 @@ namespace strange.extensions.implicitBind.impl
 					{
 						bindTypes.Add(type);
 					}
-					isCrossContext = isCrossContext || impl.Scope == InjectionBindingScope.CROSS_CONTEXT;
-					name = name ?? impl.Name;
-				}
 
-				ImplicitBindingVO thisBindingVo = new ImplicitBindingVO(bindTypes, type, isCrossContext, name);
-				implementsBindings.Add(thisBindingVo);
+					ImplicitBindingVO thisBindingVo = new ImplicitBindingVO(bindTypes, type, InjectionBindingScope.CROSS_CONTEXT.Equals(impl.Scope), name);
+					implementsBindings.Add(thisBindingVo);
+				}
 			}
 
 			implementsBindings.ForEach(Bind);

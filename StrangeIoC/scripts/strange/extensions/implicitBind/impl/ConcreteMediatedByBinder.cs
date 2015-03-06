@@ -35,12 +35,10 @@ namespace strange.extensions.implicitBind.impl
 		{
 			this.typesInNamespaces = typesInNamespaces;
 
-			Type mediatorType = null;
-			Type viewType = null;
 			foreach (Type type in GetAttributedTypes())
 			{
-				viewType = type;
-				mediatorType = ((MediatedBy)type.GetCustomAttributes(typeof(MediatedBy), true).First()).MediatorType;
+				Type mediatorType = ((MediatedBy)type.GetCustomAttributes(typeof(MediatedBy), true).First()).MediatorType;
+				Type viewType = type;
 
 				if (mediatorType == null)
 					throw new MediationException("Cannot implicitly bind view of type: " + type.Name + " due to null MediatorType",

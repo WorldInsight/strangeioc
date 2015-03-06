@@ -35,17 +35,15 @@ namespace strange.extensions.implicitBind.impl
 
 			foreach (Type type in GetAttributedTypes())
 			{
-				Type[] interfaces = type.GetInterfaces();
-
-				object name = null;
-				bool isCrossContext = false;
 				List<Type> bindTypes = new List<Type>();
 
 				foreach (ImplementedBy implBy in type.GetCustomAttributes(typeof(ImplementedBy), true))
 				{
-					if (implBy.DefaultType.GetInterfaces().Contains(type)) //Verify this DefaultType exists and implements the tagged interface
+					Type[] interfaces = implBy.DefaultType.GetInterfaces();
+
+					if (interfaces.Contains(type)) //Verify this DefaultType exists and implements the tagged interface
 					{
-						implementedByBindings.Add(new ImplicitBindingVO(type, implBy.DefaultType, implBy.Scope == InjectionBindingScope.CROSS_CONTEXT, null));
+						implementedByBindings.Add(new ImplicitBindingVO(type, implBy.DefaultType, InjectionBindingScope.CROSS_CONTEXT.Equals(implBy.Scope), null));
 					}
 					else
 					{
