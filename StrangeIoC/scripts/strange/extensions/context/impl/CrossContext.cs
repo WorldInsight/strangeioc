@@ -85,9 +85,8 @@ namespace strange.extensions.context.impl
 		/// Other contexts don't need to listen to the cross-context dispatcher
 		/// as such, just map the necessary event to your local context
 		/// dispatcher and you'll receive it.
-	    protected IEventDispatcher _crossContextDispatcher;
+		protected IEventDispatcher _crossContextDispatcher;
 
-        
 		public CrossContext() : base()
 		{}
 
@@ -114,10 +113,15 @@ namespace strange.extensions.context.impl
 
 				// TODO: Why do we bind a cross EventDispatcher here but soley the MVCS Contxt also binds a local and context EventDispatcher, shouldn't this be in base?
 				injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CROSS_CONTEXT_DISPATCHER).CrossContext();
-				injectionBinder.Bind<CrossContextBridge> ().ToSingleton ().CrossContext();
+				injectionBinder.Bind<CrossContextBridge>().ToSingleton().CrossContext();
 
 				injectionBinder.GetBinding<ITypeRegistry>().CrossContext();
 				injectionBinder.GetBinding<IImplicitBinder>().CrossContext();
+			}
+			// If this isn't the first context, unbind the local type registry. If there where a local binding, the cross context binding wouldn't be used
+			else
+			{
+				injectionBinder.Unbind<ITypeRegistry>();
 			}
 
 		}

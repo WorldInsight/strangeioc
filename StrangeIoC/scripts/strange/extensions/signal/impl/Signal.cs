@@ -46,8 +46,8 @@
 
 		//SIGNAL WITH PARAMETERS
 		//Create a new signal with two parameters
- 		Signal<int, string> signal = new Signal<int, string>();
- 		//Add a listener
+		Signal<int, string> signal = new Signal<int, string>();
+		//Add a listener
 		signal.AddListener(callbackWithParamsIntAndString);
 		//Add a listener for the duration of precisely one Dispatch
 		signal.AddOnce(anotherCallbackWithParamsIntAndString);
