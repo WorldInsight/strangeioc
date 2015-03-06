@@ -66,6 +66,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace strange.extensions.signal.impl
 {
@@ -106,6 +107,7 @@ namespace strange.extensions.signal.impl
 		}
 		public void Dispatch(T type1)
 		{
+			if (type1 == null) throw new InvalidDataException(typeof(T) + " is NULL, you must not dispatch NULL");
 			Listener(type1);
 			OnceListener(type1);
 			OnceListener = delegate { };
@@ -131,6 +133,8 @@ namespace strange.extensions.signal.impl
 		}
 		public void Dispatch(T type1, U type2)
 		{
+			if (type1 == null) throw new InvalidDataException(typeof(T) + " is NULL, you must not dispatch NULL");
+			if (type2 == null) throw new InvalidDataException(typeof(U) + " is NULL, you must not dispatch NULL");
 			Listener(type1, type2);
 			OnceListener(type1, type2);
 			OnceListener = delegate { };
@@ -157,6 +161,9 @@ namespace strange.extensions.signal.impl
 		}
 		public void Dispatch(T type1, U type2, V type3)
 		{
+			if (type1 == null) throw new InvalidDataException(typeof(T) + " is NULL, you must not dispatch NULL");
+			if (type2 == null) throw new InvalidDataException(typeof(U) + " is NULL, you must not dispatch NULL");
+			if (type3 == null) throw new InvalidDataException(typeof(V) + " is NULL, you must not dispatch NULL");
 			Listener(type1, type2, type3);
 			OnceListener(type1, type2, type3);
 			OnceListener = delegate { };
@@ -184,6 +191,10 @@ namespace strange.extensions.signal.impl
 		}
 		public void Dispatch(T type1, U type2, V type3, W type4)
 		{
+			if (type1 == null) throw new InvalidDataException(typeof(T) + " is NULL, you must not dispatch NULL");
+			if (type2 == null) throw new InvalidDataException(typeof(U) + " is NULL, you must not dispatch NULL");
+			if (type3 == null) throw new InvalidDataException(typeof(V) + " is NULL, you must not dispatch NULL");
+			if (type4 == null) throw new InvalidDataException(typeof(W) + " is NULL, you must not dispatch NULL");
 			Listener(type1, type2, type3, type4);
 			OnceListener(type1, type2, type3, type4);
 			OnceListener = delegate { };
