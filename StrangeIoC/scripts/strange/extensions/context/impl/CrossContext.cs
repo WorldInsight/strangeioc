@@ -113,6 +113,8 @@ namespace strange.extensions.context.impl
 				// TODO: Why do we bind a cross EventDispatcher here but soley the MVCS Contxt also binds a local and context EventDispatcher, shouldn't this be in base?
 				injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CROSS_CONTEXT_DISPATCHER).CrossContext();
 				injectionBinder.Bind<CrossContextBridge> ().ToSingleton ().CrossContext();
+
+				injectionBinder.GetBinding<IImplicitBinder>().CrossContext();
 			}
 
 		}
