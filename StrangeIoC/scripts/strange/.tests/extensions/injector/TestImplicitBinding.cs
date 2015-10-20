@@ -429,9 +429,36 @@ namespace strange.unittests
 			TestCrossInterfaceTwo two = context.injectionBinder.CrossContextBinder.GetInstance<TestCrossInterfaceTwo>() as TestCrossInterfaceTwo;
 			Assert.NotNull(two);
 
+			Assert.That(context.injectionBinder.GetBinding<TestInterfaceOne>().isCrossContext, Is.False);
+			Assert.That(context.injectionBinder.CrossContextBinder.GetBinding<TestCrossInterfaceTwo>().isCrossContext, Is.True);
+		}
+
+		/// <summary>
+		/// see issue https://github.com/strangeioc/strangeioc/issues/118
+		/// multiple implements annotations must not override each other
+		/// <para>
+		/// derivate / combination of 
+		/// <seealso cref="TestMultipleImplements"/> and <seealso cref="TestMultipleImplementsWithDifferentScope"/>test 
+		/// </para>
+		/// </summary>
+		[Test]
+		public void TestMultipleImplementsWithDifferentScopeMixins()
+		{
+			context.ScannedPackages = new string[]{
+				"strange.unittests.annotated.multipleInterfaces"
+			};
+			context.Start();
+
+			TestInterfaceOne one = context.injectionBinder.GetInstance<TestInterfaceOne>() as TestInterfaceOne;
+			Assert.NotNull(one);
+
+			TestCrossInterfaceTwo two = context.injectionBinder.CrossContextBinder.GetInstance<TestCrossInterfaceTwo>() as TestCrossInterfaceTwo;
+			Assert.NotNull(two);
+
 			TestInterfaceThree three = context.injectionBinder.GetInstance<TestInterfaceThree>() as TestInterfaceThree;
 			Assert.NotNull(three);
 
+			// since multiple Implements bindings maps to the same value only bindings in same scope must match
 			Assert.AreNotEqual(one, two);
 			Assert.AreEqual(one, three);
 		}
