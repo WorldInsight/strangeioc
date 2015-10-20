@@ -1,4 +1,7 @@
-﻿using NUnit.Framework;
+﻿using System.Globalization;
+using System.Linq;
+
+using NUnit.Framework;
 using strange.extensions.context.impl;
 using strange.extensions.injector.impl;
 using strange.extensions.injector.api;
@@ -405,9 +408,72 @@ namespace strange.unittests
 			Assert.AreEqual(one, two);
 			Assert.AreEqual(one, three);
 		}
+
+		/// <summary>
+		/// see issue https://github.com/strangeioc/strangeioc/issues/118
+		/// multiple implements annotations must not override each other
+		/// 
+		/// <seealso cref="TestMultipleImplements"/> test 
+		/// </summary>
+		[Test]
+		public void TestMultipleImplementsWithDifferentScope()
+		{
+			context.ScannedPackages = new string[]{
+				"strange.unittests.annotated.multipleInterfaces"
+			};
+			context.Start();
+
+			TestInterfaceOne one = context.injectionBinder.GetInstance<TestInterfaceOne>() as TestInterfaceOne;
+			Assert.NotNull(one);
+
+			TestCrossInterfaceTwo two = context.injectionBinder.CrossContextBinder.GetInstance<TestCrossInterfaceTwo>() as TestCrossInterfaceTwo;
+			Assert.NotNull(two);
+
+			TestInterfaceThree three = context.injectionBinder.GetInstance<TestInterfaceThree>() as TestInterfaceThree;
+			Assert.NotNull(three);
+
+			Assert.AreNotEqual(one, two);
+			Assert.AreEqual(one, three);
+		}
+
+		/// <summary>
+		/// see issue https://github.com/strangeioc/strangeioc/issues/118
+		/// multiple implements annotations must not override each other
+		///
+		/// <seealso cref="TestImplementedBy"/> test 
+		/// </summary>
+		[Test]
+		public void TestImplementedByCrossContext()
+		{
+			context.ScannedPackages = new string[]{
+				"strange.unittests.annotated.testImplBy" //Namespace is the only true difference. Same tests as above for the same action done by a different method
+			};
+			context.Start();
+
+			TestCrossInterface testImpl = context.injectionBinder.CrossContextBinder.GetInstance<TestCrossInterface>() as TestCrossInterface;
+			Assert.IsNotNull(testImpl);
+			
+			//Check that this objects type implements test interface.
+			// Remark @childnode: this is done implicit by using `as TestCrossInterface` cast and checking for IsNotNull afterwards, this will never fail!
+			Assert.That(
+				testImpl,
+				Is.InstanceOfType<TestCrossInterface>(),
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Type {0} is expected to implement `{1}` but implements `{2}`",
+					testImpl.GetType().Name,
+					typeof(TestCrossInterface).Name,
+					testImpl.GetType().GetInterfaces()
+					.Aggregate(
+						string.Empty,
+						(ti1, ti2) => ti1 + ((string.IsNullOrEmpty(ti1) ? string.Empty : ", ") + ti2.Name))
+					)
+				);
+
+			//Check that its the type we added below
+			Assert.AreEqual(testImpl.GetType(), typeof(TestCrossImpl));
+		}
 	}
-
-
 }
 
 namespace strange.unittests.annotated.testConcrete
@@ -426,6 +492,11 @@ namespace strange.unittests.annotated.testImplBy
 {
 	[ImplementedBy(typeof(TestImpl))]
 	public interface TestInterface { }
+
+	[ImplementedBy(typeof(TestCrossImpl), InjectionBindingScope.CROSS_CONTEXT)]
+	public interface TestCrossInterface { }
+
+	public class TestCrossImpl : TestCrossInterface { }
 }
 
 namespace strange.unittests.annotated.testImplements
@@ -514,14 +585,16 @@ namespace strange.unittests.annotated.multipleInterfaces
 	public interface TestInterfaceTwo { }
 	public interface TestInterfaceThree { }
 
+	public interface TestCrossInterfaceTwo { }
+
 	[Implements(typeof(TestInterfaceOne))]
 	[Implements(typeof(TestInterfaceTwo))]
+	[Implements(typeof(TestCrossInterfaceTwo), InjectionBindingScope.CROSS_CONTEXT)]
 	[Implements(typeof(TestInterfaceThree))]
-	public class TestMultipleImplementer : TestInterfaceOne, TestInterfaceTwo, TestInterfaceThree
+	public class TestMultipleImplementer : TestInterfaceOne, TestInterfaceTwo, TestInterfaceThree, TestCrossInterfaceTwo
 	{
 		
 	}
-	
 }
 
 namespace strange.unittests.testimplicitbindingnamespace
