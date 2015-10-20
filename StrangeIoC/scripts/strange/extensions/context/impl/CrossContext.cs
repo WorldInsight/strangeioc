@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2013 ThirdMotion, Inc.
  *
  *	Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ using strange.extensions.dispatcher.eventdispatcher.api;
 using strange.extensions.dispatcher.eventdispatcher.impl;
 using strange.extensions.context.api;
 using strange.extensions.dispatcher.api;
+using strange.extensions.implicitBind.api;
 using strange.extensions.injector.api;
 using strange.extensions.injector.impl;
 using strange.framework.api;
@@ -39,11 +40,37 @@ namespace strange.extensions.context.impl
 		private ICrossContextInjectionBinder _injectionBinder;
 		private IBinder _crossContextBridge;
 
+		/// A Binder that serves as the Event bus for the Context
+		public IEventDispatcher dispatcher { get; set; }
+
 		/// A Binder that handles dependency injection binding and instantiation
-		public ICrossContextInjectionBinder injectionBinder
+		public ICrossContextInjectionBinder crossContextInjectionBinder
 		{
-			get { return _injectionBinder ?? (_injectionBinder = new CrossContextInjectionBinder()); }
-		    set { _injectionBinder = value; }
+			get
+			{
+				if (_injectionBinder != null)
+				{
+					return _injectionBinder;
+				}
+				// create new cross context injection binder
+				_injectionBinder = new CrossContextInjectionBinder()
+				{
+					// reuse existing binding from base
+					CrossContextBinder = (base.injectionBinder != null) ? base.injectionBinder : new CrossContextInjectionBinder(),
+				};
+				return _injectionBinder; 
+			}
+			set
+			{
+				_injectionBinder = value;
+			}
+		}
+
+		public override IInjectionBinder injectionBinder
+		{
+			get {
+				return crossContextInjectionBinder;
+			}
 		}
 
 		/// A specific instance of EventDispatcher that communicates 
@@ -77,15 +104,17 @@ namespace strange.extensions.context.impl
 		protected override void addCoreComponents()
 		{
 			base.addCoreComponents();
-			if (injectionBinder.CrossContextBinder == null)  //Only null if it could not find a parent context / firstContext
-			{
-				injectionBinder.CrossContextBinder = new CrossContextInjectionBinder();
-			}
 
 			if (firstContext == this)
 			{
+				injectionBinder.GetBinding<IInstanceProvider>().CrossContext();
+				injectionBinder.GetBinding<IInjectionBinder>().CrossContext();
+
+				// TODO: Why do we bind a cross EventDispatcher here but soley the MVCS Contxt also binds a local and context EventDispatcher, shouldn't this be in base?
 				injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CROSS_CONTEXT_DISPATCHER).CrossContext();
 				injectionBinder.Bind<CrossContextBridge> ().ToSingleton ().CrossContext();
+
+				injectionBinder.GetBinding<IImplicitBinder>().CrossContext();
 			}
 
 		}
@@ -95,14 +124,16 @@ namespace strange.extensions.context.impl
 			base.instantiateCoreComponents();
 
 			IInjectionBinding dispatcherBinding = injectionBinder.GetBinding<IEventDispatcher> (ContextKeys.CONTEXT_DISPATCHER);
+			IInjectionBinding crossDispatcherBinding = injectionBinder.GetBinding<IEventDispatcher>(ContextKeys.CROSS_CONTEXT_DISPATCHER);
+			if (dispatcherBinding != null)
+			{
+				dispatcher = injectionBinder.GetInstance<IEventDispatcher>(ContextKeys.CONTEXT_DISPATCHER);
+				(dispatcher as ITriggerProvider).AddTriggerable(crossContextBridge as ITriggerable);
 
-			if (dispatcherBinding != null) {
-				IEventDispatcher dispatcher = injectionBinder.GetInstance<IEventDispatcher> (ContextKeys.CONTEXT_DISPATCHER) as IEventDispatcher;
-
-				if (dispatcher != null) {
+				if (crossDispatcherBinding != null)
+				{
 					crossContextDispatcher = injectionBinder.GetInstance<IEventDispatcher> (ContextKeys.CROSS_CONTEXT_DISPATCHER) as IEventDispatcher;
 					(crossContextDispatcher as ITriggerProvider).AddTriggerable (dispatcher as ITriggerable);
-					(dispatcher as ITriggerProvider).AddTriggerable (crossContextBridge as ITriggerable);
 				}
 			}
 		}
@@ -120,7 +151,7 @@ namespace strange.extensions.context.impl
 		virtual public void AssignCrossContext(ICrossContextCapable childContext)
 		{
 			childContext.crossContextDispatcher = crossContextDispatcher;
-			childContext.injectionBinder.CrossContextBinder = injectionBinder.CrossContextBinder;
+			childContext.crossContextInjectionBinder.CrossContextBinder = crossContextInjectionBinder.CrossContextBinder;
 		}
 
 		virtual public void RemoveCrossContext(ICrossContextCapable childContext)

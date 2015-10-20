@@ -24,14 +24,18 @@
  * In a typical Unity3D setup, an extension of MVCSContext should be instantiated from the ContextView.
  */
 
-using System;
+using strange.extensions.injector.api;
 using strange.framework.api;
-using strange.extensions.dispatcher.api;
 
 namespace strange.extensions.context.api
 {
 	public interface IContext : IBinder
 	{
+		/// <summary>
+		///  the injectionBinder for the context
+		/// </summary>
+		IInjectionBinder injectionBinder { get; }
+
 		/// Kicks off the internal Context binding/instantiation mechanisms 
 		IContext Start();
 

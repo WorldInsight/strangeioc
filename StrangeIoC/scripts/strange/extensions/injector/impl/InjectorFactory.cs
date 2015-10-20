@@ -125,9 +125,9 @@ namespace strange.extensions.injector.impl
 					retv = Activator.CreateInstance(value, args);
 				}
 			}
-			catch
+			catch (Exception e)
 			{
-				//No-op
+				throw new InjectionException("InjectorFactory can't instantiate Class: " + value.ToString(), InjectionExceptionType.NOT_INSTANTIABLE, e);
 			}
 			return retv;
 		}
