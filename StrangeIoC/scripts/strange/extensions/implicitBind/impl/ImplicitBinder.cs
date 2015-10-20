@@ -23,6 +23,7 @@ using strange.extensions.injector.api;
 using strange.extensions.injector.impl;
 using strange.extensions.mediation.api;
 using strange.extensions.mediation.impl;
+using strange.framework.api;
 
 namespace strange.extensions.implicitBind.impl
 {
@@ -71,7 +72,7 @@ namespace strange.extensions.implicitBind.impl
 
 				foreach (Type type in typesInNamespaces)
 				{
-					object[] implements = type.GetCustomAttributes(typeof (Implements), true);
+					object[] implements = type.GetCustomAttributes(typeof(Implements), true);
 					object[] implementedBy = type.GetCustomAttributes(typeof(ImplementedBy), true);
 					object[] mediated = type.GetCustomAttributes(typeof(MediatedBy), true);
 					object[] mediates = type.GetCustomAttributes(typeof(Mediates), true);
@@ -98,13 +99,12 @@ namespace strange.extensions.implicitBind.impl
 					if (implements.Any())
 					{
 						Type[] interfaces = type.GetInterfaces();
-						
-						object name = null;
-						bool isCrossContext = false;
-						List<Type> bindTypes = new List<Type>();
 
 						foreach (Implements impl in implements)
 						{
+							object name = impl.Name ?? BindingConst.NULLOID;
+							List<Type> bindTypes = new List<Type>();
+
 							//Confirm this type implements the type specified
 							if (impl.DefaultInterface != null)
 							{
@@ -123,17 +123,15 @@ namespace strange.extensions.implicitBind.impl
 							{
 								bindTypes.Add(type);
 							}
-							isCrossContext = isCrossContext || impl.Scope == InjectionBindingScope.CROSS_CONTEXT;
-							name = name ?? impl.Name;
+
+							ImplicitBindingVO thisBindingVo = new ImplicitBindingVO(bindTypes, type, InjectionBindingScope.CROSS_CONTEXT.Equals(impl.Scope), name);
+
+							implementsBindings.Add(thisBindingVo);
 						}
-
-						ImplicitBindingVO thisBindingVo = new ImplicitBindingVO(bindTypes, type, isCrossContext, name);
-
-						implementsBindings.Add(thisBindingVo);
 					}
 
 					#endregion
-					
+
 					//Handle mediations here. We have no need to re-iterate over them to prioritize anything. Not yet, at least.
 
 					#region Mediations
