@@ -179,6 +179,9 @@ namespace strange.extensions.context.impl
 		/// A Binder that maps Events to Commands
 		public ICommandBinder commandBinder{get;set;}
 
+		/// A Binder that serves as the Event bus for the Context
+		public IEventDispatcher dispatcher{get;set;}
+
 		/// A Binder that maps Views to Mediators
 		public IMediationBinder mediationBinder{get;set;}
 
@@ -226,13 +229,10 @@ namespace strange.extensions.context.impl
 
 			injectionBinder.Bind<IContext>().ToValue(this).ToName(ContextKeys.CONTEXT);
 			injectionBinder.Bind<ICommandBinder>().To<EventCommandBinder>().ToSingleton();
-
-			// TODO: Why do we bind a local and context EventDispatcher in MVCS Context, shouldn't this be in base Context? This causes the CrossContext itself has no binding for IEventDispatcher
 			//This binding is for local dispatchers
 			injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>();
 			//This binding is for the common system bus
 			injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CONTEXT_DISPATCHER);
-
 			injectionBinder.Bind<IMediationBinder>().To<MediationBinder>().ToSingleton();
 			injectionBinder.Bind<ISequencer>().To<EventSequencer>().ToSingleton();
 		}
@@ -247,6 +247,7 @@ namespace strange.extensions.context.impl
 			injectionBinder.Bind<GameObject>().ToValue(contextView).ToName(ContextKeys.CONTEXT_VIEW);
 			commandBinder = injectionBinder.GetInstance<ICommandBinder>() as ICommandBinder;
 			
+			dispatcher = injectionBinder.GetInstance<IEventDispatcher>(ContextKeys.CONTEXT_DISPATCHER) as IEventDispatcher;
 			mediationBinder = injectionBinder.GetInstance<IMediationBinder>() as IMediationBinder;
 			sequencer = injectionBinder.GetInstance<ISequencer>() as ISequencer;
 
