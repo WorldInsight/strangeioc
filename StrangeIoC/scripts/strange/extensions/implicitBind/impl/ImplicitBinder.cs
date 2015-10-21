@@ -65,9 +65,7 @@ namespace strange.extensions.implicitBind.impl
 
 				IEnumerable<Type> concreteBinderClasses = types.Where(
 					t =>
-						t.BaseType != null
-						&&
-						t.BaseType.Name.Equals(typeof(AbstractConcreteBinder<>).Name)
+						DerivesFrom(t, typeof(AbstractConcreteBinder<>).Name)
 						&& 
 						((t.GetCustomAttributes(typeof(ConcreteBinderAttribute), false).Length > 0) ?
 							(
@@ -86,7 +84,7 @@ namespace strange.extensions.implicitBind.impl
 						int.MaxValue
 				);
 
-				foreach(Type binder in concreteBinderClasses)
+				foreach (Type binder in concreteBinderClasses)
 				{
 					Type[] genericTypes = binder.BaseType.GetGenericArguments();
 
@@ -104,6 +102,27 @@ namespace strange.extensions.implicitBind.impl
 			{
 				throw new InjectionException("Assembly was not initialized yet for Implicit Bindings!", InjectionExceptionType.UNINITIALIZED_ASSEMBLY);
 			}
+		}
+
+		/// <summary>
+		/// Checks if the givent type derives from another type.
+		/// </summary>
+		/// <param name="checkedType">Type of the checked.</param>
+		/// <param name="baseTypeName">Name of the base type.</param>
+		/// <returns>True if yes, else false.</returns>
+		private static bool DerivesFrom(Type checkedType, string baseTypeName)
+		{
+			if (checkedType.BaseType == null)
+			{
+				return false;
+			}
+
+			if (checkedType.BaseType.Name == baseTypeName)
+			{
+				return true;
+			}
+
+			return DerivesFrom(checkedType.BaseType, baseTypeName);
 		}
 	}
 }
