@@ -1,6 +1,8 @@
 /*
  * Copyright 2013 ThirdMotion, Inc.
  *
+ * Modified  2014 DB Systel GmbH
+ *
  *	Licensed under the Apache License, Version 2.0 (the "License");
  *	you may not use this file except in compliance with the License.
  *	You may obtain a copy of the License at
@@ -100,6 +102,7 @@ namespace strange.extensions.context.impl
 		{
 			injectionBinder.Bind<IInstanceProvider>().Bind<IInjectionBinder>().ToValue(injectionBinder);
 
+			injectionBinder.Bind<ITypeRegistry>().To<TypeRegistry>().ToSingleton();
 			injectionBinder.Bind<IImplicitBinder>().To<ImplicitBinder>().ToSingleton();
 		}
 		
@@ -157,16 +160,16 @@ namespace strange.extensions.context.impl
 		/// Remove a context from this one.
 		virtual public IContext RemoveContext(IContext context)
 		{
-            //If we're removing firstContext, set firstContext to null
-		    if (context == firstContext)
-		    {
-		    	firstContext = null;
-		    }
-		    else
-		    {
-		    	context.OnRemove();
-		    }
-		    return this;
+			//If we're removing firstContext, set firstContext to null
+			if (context == firstContext)
+			{
+				firstContext = null;
+			}
+			else
+			{
+				context.OnRemove();
+			}
+			return this;
 		}
 
 		/// Retrieve a component from this Context by generic type

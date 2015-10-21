@@ -86,7 +86,7 @@
  * `dispatcher` is injected into all EventMediators, EventCommands
  * and EventSequenceCommands, and may be injected elsewhere with:
 
- 		[Inject(ContextKeys.CONTEXT_DISPATCHER)]
+		[Inject(ContextKeys.CONTEXT_DISPATCHER)]
 		public IEventDispatcher dispatcher{ get; set;}
 
  * For examples, see IEventDispatcher. Generally you don't map the dispatcher's

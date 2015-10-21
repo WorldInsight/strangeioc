@@ -1,6 +1,8 @@
 ﻿/*
  * Copyright 2013 ThirdMotion, Inc.
  *
+ * Modified  2014 DB Systel GmbH
+ *
  *	Licensed under the Apache License, Version 2.0 (the "License");
  *	you may not use this file except in compliance with the License.
  *	You may obtain a copy of the License at
@@ -80,9 +82,8 @@ namespace strange.extensions.context.impl
 		/// Other contexts don't need to listen to the cross-context dispatcher
 		/// as such, just map the necessary event to your local context
 		/// dispatcher and you'll receive it.
-	    protected IEventDispatcher _crossContextDispatcher;
+		protected IEventDispatcher _crossContextDispatcher;
 
-        
 		public CrossContext() : base()
 		{}
 
@@ -108,9 +109,15 @@ namespace strange.extensions.context.impl
 				injectionBinder.GetBinding<IInjectionBinder>().CrossContext();
 
 				injectionBinder.Bind<IEventDispatcher>().To<EventDispatcher>().ToSingleton().ToName(ContextKeys.CROSS_CONTEXT_DISPATCHER).CrossContext();
-				injectionBinder.Bind<CrossContextBridge> ().ToSingleton ().CrossContext();
+				injectionBinder.Bind<CrossContextBridge>().ToSingleton().CrossContext();
 
+				injectionBinder.GetBinding<ITypeRegistry>().CrossContext();
 				injectionBinder.GetBinding<IImplicitBinder>().CrossContext();
+			}
+			// If this isn't the first context, unbind the local type registry. If there where a local binding, the cross context binding wouldn't be used
+			else
+			{
+				injectionBinder.Unbind<ITypeRegistry>();
 			}
 
 		}
